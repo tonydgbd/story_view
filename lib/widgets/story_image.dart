@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 import '../utils.dart';
@@ -45,15 +47,18 @@ class ImageLoader {
         final imageBytes = fileResponse.file.readAsBytesSync();
 
         this.state = LoadState.success;
-
-        PaintingBinding.instance!.instantiateImageCodec(imageBytes).then(
+        ImmutableBuffer.fromUint8List(imageBytes).then((value) => {
+          PaintingBinding.instance.instantiateImageCodecWithSize(value).then(
             (codec) {
           this.frames = codec;
           onComplete();
         }, onError: (error) {
           this.state = LoadState.failure;
           onComplete();
+        })
         });
+
+        
       },
       onError: (error) {
         this.state = LoadState.failure;
